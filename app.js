@@ -1,3 +1,4 @@
+const USER_NAME = "Cristian";
 const DEFAULT_LOCATION = { name: "Boca Raton", lat: 26.3683, lon: -80.1289 };
 
 // WMO weather codes used by Open-Meteo
@@ -110,4 +111,24 @@ $("search").addEventListener("submit", (e) => {
   if (query) searchCity(query);
 });
 
+function greet() {
+  const hour = new Date().getHours();
+  const part = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  $("greeting").textContent = `${part}, ${USER_NAME}`;
+}
+
+function setTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  try { localStorage.setItem("theme", theme); } catch {}
+  document.querySelectorAll("[data-theme-option]").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.themeOption === theme);
+  });
+}
+
+document.querySelectorAll("[data-theme-option]").forEach((btn) => {
+  btn.addEventListener("click", () => setTheme(btn.dataset.themeOption));
+});
+
+setTheme(document.documentElement.dataset.theme);
+greet();
 loadWeather(DEFAULT_LOCATION);

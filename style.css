@@ -1,21 +1,67 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Light theme (default) */
+:root {
+  --text: #1d1d1f;
+  --glass: rgba(255, 255, 255, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.7);
+  --divider: rgba(0, 0, 0, 0.08);
+  --accent: rgba(0, 0, 0, 0.08);
+  --shadow: rgba(31, 38, 135, 0.12);
+  --bg-base: #dbe9f8;
+  --bg:
+    radial-gradient(circle at 20% 20%, #ffd3c4 0%, transparent 40%),
+    radial-gradient(circle at 80% 30%, #b9c8ff 0%, transparent 45%),
+    radial-gradient(circle at 50% 90%, #a8eadf 0%, transparent 50%),
+    linear-gradient(160deg, #e8f1fb, #c9dcf5);
+}
+
+/* Dark theme */
+:root[data-theme="dark"] {
+  --text: #f5f5f7;
+  --glass: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --divider: rgba(255, 255, 255, 0.1);
+  --accent: rgba(255, 255, 255, 0.16);
+  --shadow: rgba(0, 0, 0, 0.35);
+  --bg-base: #0b1020;
+  --bg:
+    radial-gradient(circle at 20% 20%, #4b2a6b 0%, transparent 40%),
+    radial-gradient(circle at 80% 30%, #1d3a7a 0%, transparent 45%),
+    radial-gradient(circle at 50% 90%, #0f4c5c 0%, transparent 50%),
+    linear-gradient(160deg, #0b1020, #141a33);
+}
+
+/* System theme follows the OS setting */
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="system"] {
+    --text: #f5f5f7;
+    --glass: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.14);
+    --divider: rgba(255, 255, 255, 0.1);
+    --accent: rgba(255, 255, 255, 0.16);
+    --shadow: rgba(0, 0, 0, 0.35);
+    --bg-base: #0b1020;
+    --bg:
+      radial-gradient(circle at 20% 20%, #4b2a6b 0%, transparent 40%),
+      radial-gradient(circle at 80% 30%, #1d3a7a 0%, transparent 45%),
+      radial-gradient(circle at 50% 90%, #0f4c5c 0%, transparent 50%),
+      linear-gradient(160deg, #0b1020, #141a33);
+  }
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
-  color: #fff;
+  color: var(--text);
   min-height: 100vh;
-  background: #1c3d6e;
+  background: var(--bg-base);
 }
 
 .bg {
   position: fixed;
   inset: 0;
   z-index: -1;
-  background:
-    radial-gradient(circle at 20% 20%, #ff9a8b 0%, transparent 40%),
-    radial-gradient(circle at 80% 30%, #6a82fb 0%, transparent 45%),
-    radial-gradient(circle at 50% 90%, #38b2ac 0%, transparent 50%),
-    linear-gradient(160deg, #1e3c72, #2a5298);
+  background: var(--bg);
 }
 
 .app {
@@ -28,13 +74,13 @@ body {
 }
 
 .glass {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
   border-radius: 24px;
   padding: 20px;
   backdrop-filter: blur(24px) saturate(160%);
   -webkit-backdrop-filter: blur(24px) saturate(160%);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 32px var(--shadow);
 }
 
 h2 {
@@ -57,19 +103,19 @@ h2 {
   background: none;
   border: none;
   outline: none;
-  color: #fff;
+  color: var(--text);
   font-size: 16px;
 }
 
-.search input::placeholder { color: rgba(255, 255, 255, 0.7); }
+.search input::placeholder { color: var(--text); opacity: 0.55; }
 
 .search button {
   width: 40px;
   height: 40px;
   border: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.25);
-  color: #fff;
+  background: var(--accent);
+  color: var(--text);
   font-size: 20px;
   cursor: pointer;
 }
@@ -115,13 +161,47 @@ h2 {
   grid-template-columns: 1fr 40px 1fr;
   align-items: center;
   padding: 10px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  border-top: 1px solid var(--divider);
 }
 
 .daily li:first-child { border-top: none; }
 .daily .icon { font-size: 22px; text-align: center; }
 .daily .range { text-align: right; }
 .daily .lo { opacity: 0.6; margin-left: 10px; }
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.greeting { font-size: 22px; font-weight: 600; }
+
+.theme-toggle {
+  display: flex;
+  padding: 4px;
+  border-radius: 999px;
+}
+
+.theme-toggle button {
+  border: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.theme-toggle button.active {
+  background: var(--accent);
+  opacity: 1;
+  font-weight: 600;
+}
 
 .error {
   text-align: center;

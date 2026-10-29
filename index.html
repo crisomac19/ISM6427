@@ -1,15 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="system">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Weather</title>
   <link rel="stylesheet" href="style.css">
+  <script>
+    try { document.documentElement.dataset.theme = localStorage.getItem("theme") || "system"; } catch {}
+  </script>
 </head>
 <body>
   <div class="bg"></div>
 
   <main class="app">
+    <header class="top">
+      <p id="greeting" class="greeting">Hello, Cristian</p>
+      <div class="glass theme-toggle" role="group" aria-label="Theme">
+        <button data-theme-option="light">Light</button>
+        <button data-theme-option="dark">Dark</button>
+        <button data-theme-option="system">System</button>
+      </div>
+    </header>
+
     <form id="search" class="glass search">
       <input id="query" type="text" placeholder="Search city…" autocomplete="off">
       <button type="submit" aria-label="Search">⌕</button>
