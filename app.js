@@ -253,6 +253,7 @@ function greet() {
 }
 
 // Map of the displayed city with an optional rain radar overlay
+const MAP_ZOOM = 5; // regional view; lower zooms out further
 let map = null;
 let marker = null;
 let radarLayer = null;
@@ -279,7 +280,7 @@ async function updateRadar() {
 function updateMap({ lat, lon }) {
   if (typeof L === "undefined") return;
   if (!map) {
-    map = L.map("map", { scrollWheelZoom: false }).setView([lat, lon], 9);
+    map = L.map("map", { scrollWheelZoom: false }).setView([lat, lon], MAP_ZOOM);
     map.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>');
     // OpenStreetMap tiles need no API key; dark mode darkens them with a CSS filter
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -297,7 +298,7 @@ function updateMap({ lat, lon }) {
     updateRadar();
   } else {
     marker.setLatLng([lat, lon]);
-    map.flyTo([lat, lon], 9, { duration: 1.2 });
+    map.flyTo([lat, lon], MAP_ZOOM, { duration: 1.2 });
   }
 }
 
