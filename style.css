@@ -120,7 +120,15 @@ h2 {
   cursor: pointer;
 }
 
-.current { text-align: center; padding: 32px 20px; }
+.current {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  text-align: center;
+  padding: 32px 20px;
+  color: #fff;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45);
+}
 .current h1 { font-size: 30px; font-weight: 500; }
 .temp { font-size: 96px; font-weight: 200; line-height: 1.1; }
 .desc { font-size: 20px; opacity: 0.9; }
@@ -168,6 +176,143 @@ h2 {
 .daily .icon { font-size: 22px; text-align: center; }
 .daily .range { text-align: right; }
 .daily .lo { opacity: 0.6; margin-left: 10px; }
+
+/* Weather scene behind the current conditions */
+.scene {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: linear-gradient(180deg, #4a90d9, #8cc8f5);
+}
+
+/* Soft shade so white text stays readable on any sky */
+.scene::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.18), transparent 70%);
+}
+
+.scene.clear.day   { background: linear-gradient(180deg, #2f80ed, #7cc4fa); }
+.scene.partly.day  { background: linear-gradient(180deg, #4a8fd8, #a3cbea); }
+.scene.cloudy.day  { background: linear-gradient(180deg, #7b8a99, #b5c1cc); }
+.scene.rain.day    { background: linear-gradient(180deg, #4b5c6d, #7d8d9c); }
+.scene.storm       { background: linear-gradient(180deg, #1f2329, #3e4650); }
+.scene.snow.day    { background: linear-gradient(180deg, #6d86a8, #a9bcd6); }
+.scene.fog.day     { background: linear-gradient(180deg, #6f7d89, #9aa6b0); }
+.scene.night       { background: linear-gradient(180deg, #1c2536, #3a4659); }
+.scene.clear.night,
+.scene.partly.night { background: linear-gradient(180deg, #050a1f, #1b2550); }
+
+.sun {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff7c2 0%, #ffd84d 55%, #ffb627 100%);
+  box-shadow: 0 0 40px 18px rgba(255, 214, 80, 0.6), 0 0 120px 60px rgba(255, 200, 60, 0.3);
+  animation: pulse 4s ease-in-out infinite;
+}
+
+.moon {
+  position: absolute;
+  top: 16px;
+  right: 22px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  box-shadow: inset -14px 6px 0 0 #f4f1de;
+  filter: drop-shadow(0 0 12px rgba(244, 241, 222, 0.6));
+}
+
+.star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #fff;
+  animation: twinkle 3s ease-in-out infinite;
+}
+
+.cloud {
+  position: absolute;
+  width: 110px;
+  height: 36px;
+  border-radius: 36px;
+  background: rgba(255, 255, 255, 0.7);
+  transform: scale(var(--scale, 1));
+  animation: drift 40s linear infinite;
+}
+
+.cloud::before,
+.cloud::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: inherit;
+}
+
+.cloud::before { width: 50px; height: 50px; top: -26px; left: 16px; }
+.cloud::after  { width: 64px; height: 64px; top: -36px; left: 40px; }
+
+.night .cloud,
+.rain .cloud,
+.storm .cloud { background: rgba(200, 210, 222, 0.45); }
+
+.drop {
+  position: absolute;
+  top: -20px;
+  width: 2px;
+  height: 16px;
+  background: linear-gradient(transparent, rgba(220, 235, 255, 0.85));
+  animation: fall 0.8s linear infinite;
+}
+
+.flake {
+  position: absolute;
+  top: -10px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+  animation: fall 5s linear infinite;
+}
+
+.flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  animation: flash 6s infinite;
+}
+
+.mist {
+  position: absolute;
+  left: -50%;
+  width: 200%;
+  height: 40%;
+  top: 25%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  filter: blur(12px);
+  animation: drift 25s linear infinite;
+}
+
+.mist-2 { top: 60%; animation-duration: 35s; animation-direction: reverse; }
+
+@keyframes pulse   { 50% { transform: scale(1.06); } }
+@keyframes twinkle { 50% { opacity: 0.2; } }
+@keyframes drift   { from { translate: -40px 0; } to { translate: 40px 0; } }
+@keyframes fall    { to { transform: translateY(320px); } }
+@keyframes flash   { 0%, 90%, 94%, 100% { opacity: 0; } 92%, 96% { opacity: 0.6; } }
+
+.cloud { animation-direction: alternate; animation-timing-function: ease-in-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .scene * { animation: none !important; }
+}
 
 .top {
   display: flex;

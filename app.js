@@ -33,7 +33,7 @@ async function loadWeather({ name, lat, lon }) {
   $("error").hidden = true;
   const url =
     `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-    "&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code" +
+    "&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day" +
     "&hourly=temperature_2m,weather_code" +
     "&daily=weather_code,temperature_2m_max,temperature_2m_min" +
     "&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto&forecast_days=7";
@@ -51,6 +51,7 @@ function render(name, data) {
   const { current, hourly, daily } = data;
   const [desc] = weather(current.weather_code);
 
+  renderScene(current.weather_code, current.is_day === 1);
   $("city").textContent = name;
   $("temp").textContent = `${Math.round(current.temperature_2m)}°`;
   $("desc").textContent = desc;
@@ -85,6 +86,50 @@ function render(name, data) {
       </li>`;
     })
     .join("");
+}
+
+// Picks a background scene for the current conditions card
+function sceneType(code) {
+  if (code <= 1) return "clear";
+  if (code === 2) return "partly";
+  if (code === 3) return "cloudy";
+  if (code === 45 || code === 48) return "fog";
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return "snow";
+  if (code >= 95) return "storm";
+  return "rain";
+}
+
+function scatter(className, count, extraStyle = () => "") {
+  return Array.from({ length: count }, () =>
+    `<span class="${className}" style="left:${Math.random() * 100}%;` +
+    `animation-delay:-${(Math.random() * 5).toFixed(2)}s;${extraStyle()}"></span>`
+  ).join("");
+}
+
+function clouds(count) {
+  return Array.from({ length: count }, (_, i) =>
+    // Alternate clouds between the left and right edges so the text stays readable
+    `<span class="cloud" style="top:${[6, 14, 62, 70][i]}%;left:${i % 2 ? 72 : -6}%;` +
+    `--scale:${(0.7 + Math.random() * 0.6).toFixed(2)};animation-duration:${30 + i * 8}s"></span>`
+  ).join("");
+}
+
+function renderScene(code, isDay) {
+  const type = sceneType(code);
+  let html = "";
+
+  if (type === "clear" || type === "partly") {
+    html += isDay ? '<span class="sun"></span>' : '<span class="moon"></span>';
+    if (!isDay) html += scatter("star", 40, () => `top:${Math.random() * 100}%`);
+  }
+  if (type !== "clear" && type !== "fog") html += clouds(type === "partly" ? 2 : 4);
+  if (type === "rain" || type === "storm") html += scatter("drop", 50);
+  if (type === "snow") html += scatter("flake", 35);
+  if (type === "storm") html += '<span class="flash"></span>';
+  if (type === "fog") html += '<span class="mist"></span><span class="mist mist-2"></span>';
+
+  $("scene").className = `scene ${type} ${isDay ? "day" : "night"}`;
+  $("scene").innerHTML = html;
 }
 
 async function searchCity(query) {
