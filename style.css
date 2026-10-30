@@ -109,6 +109,8 @@ h2 {
 
 .search input::placeholder { color: var(--text); opacity: 0.55; }
 
+.search button + button { margin-left: 6px; }
+
 .search button {
   width: 40px;
   height: 40px;

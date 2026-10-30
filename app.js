@@ -1,4 +1,5 @@
 const USER_NAME = "Cristian";
+// Used when the visitor's location isn't available
 const DEFAULT_LOCATION = { name: "Boca Raton", lat: 26.3683, lon: -80.1289 };
 
 let location_ = DEFAULT_LOCATION;
@@ -153,6 +154,34 @@ function renderScene(code, isDay) {
   $("scene").innerHTML = html;
 }
 
+// Turns coordinates into a city name (Open-Meteo has no reverse geocoding)
+async function placeName(lat, lon) {
+  try {
+    const res = await fetch(
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`
+    );
+    const data = await res.json();
+    return data.city || data.locality || data.principalSubdivision || "My Location";
+  } catch {
+    return "My Location";
+  }
+}
+
+// Loads weather for the visitor's location, or Boca Raton if it isn't available
+function locateUser() {
+  if (!navigator.geolocation) return loadWeather(DEFAULT_LOCATION);
+  $("city").textContent = "Locating…";
+  navigator.geolocation.getCurrentPosition(
+    async ({ coords }) => {
+      const lat = coords.latitude;
+      const lon = coords.longitude;
+      loadWeather({ name: await placeName(lat, lon), lat, lon });
+    },
+    () => loadWeather(DEFAULT_LOCATION),
+    { timeout: 10000, maximumAge: 10 * 60 * 1000 }
+  );
+}
+
 async function searchCity(query) {
   const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1`;
   try {
@@ -175,6 +204,11 @@ $("search").addEventListener("submit", (e) => {
   e.preventDefault();
   const query = $("query").value.trim();
   if (query) searchCity(query);
+});
+
+$("locate").addEventListener("click", () => {
+  $("query").value = "";
+  locateUser();
 });
 
 function greet() {
@@ -225,4 +259,4 @@ document.addEventListener("visibilitychange", () => {
 });
 
 greet();
-loadWeather(DEFAULT_LOCATION);
+locateUser();
