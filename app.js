@@ -1,6 +1,10 @@
 const USER_NAME = "Cristian";
 const DEFAULT_LOCATION = { name: "Boca Raton", lat: 26.3683, lon: -80.1289 };
 
+let location_ = DEFAULT_LOCATION;
+let unit = "fahrenheit";
+try { unit = localStorage.getItem("unit") || unit; } catch {}
+
 // WMO weather codes used by Open-Meteo
 const WEATHER = {
   0: ["Clear", "☀️"],
@@ -29,14 +33,17 @@ const WEATHER = {
 const weather = (code) => WEATHER[code] || ["Unknown", "🌡️"];
 const $ = (id) => document.getElementById(id);
 
-async function loadWeather({ name, lat, lon }) {
+async function loadWeather(place) {
+  location_ = place;
+  const { name, lat, lon } = place;
+  const windUnit = unit === "celsius" ? "kmh" : "mph";
   $("error").hidden = true;
   const url =
     `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
     "&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day" +
     "&hourly=temperature_2m,weather_code" +
     "&daily=weather_code,temperature_2m_max,temperature_2m_min" +
-    "&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto&forecast_days=7";
+    `&temperature_unit=${unit}&wind_speed_unit=${windUnit}&timezone=auto&forecast_days=7`;
 
   try {
     const res = await fetch(url);
@@ -59,7 +66,7 @@ function render(name, data) {
     `H:${Math.round(daily.temperature_2m_max[0])}°  L:${Math.round(daily.temperature_2m_min[0])}°`;
   $("feels").textContent = `${Math.round(current.apparent_temperature)}°`;
   $("humidity").textContent = `${current.relative_humidity_2m}%`;
-  $("wind").textContent = `${Math.round(current.wind_speed_10m)} mph`;
+  $("wind").textContent = `${Math.round(current.wind_speed_10m)} ${unit === "celsius" ? "km/h" : "mph"}`;
 
   // Next 24 hours starting from the current hour
   const start = hourly.time.findIndex((t) => t >= current.time.slice(0, 13));
@@ -174,6 +181,23 @@ document.querySelectorAll("[data-theme-option]").forEach((btn) => {
   btn.addEventListener("click", () => setTheme(btn.dataset.themeOption));
 });
 
+function setUnit(newUnit) {
+  unit = newUnit;
+  try { localStorage.setItem("unit", unit); } catch {}
+  document.querySelectorAll("[data-unit-option]").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.unitOption === unit);
+  });
+}
+
+document.querySelectorAll("[data-unit-option]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    if (btn.dataset.unitOption === unit) return;
+    setUnit(btn.dataset.unitOption);
+    loadWeather(location_);
+  });
+});
+
 setTheme(document.documentElement.dataset.theme);
+setUnit(unit);
 greet();
 loadWeather(DEFAULT_LOCATION);

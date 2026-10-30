@@ -15,10 +15,16 @@
   <main class="app">
     <header class="top">
       <p id="greeting" class="greeting">Hello, Cristian</p>
-      <div class="glass theme-toggle" role="group" aria-label="Theme">
-        <button data-theme-option="light">Light</button>
-        <button data-theme-option="dark">Dark</button>
-        <button data-theme-option="system">System</button>
+      <div class="controls">
+        <div class="glass toggle" role="group" aria-label="Theme">
+          <button data-theme-option="light">Light</button>
+          <button data-theme-option="dark">Dark</button>
+          <button data-theme-option="system">System</button>
+        </div>
+        <div class="glass toggle" role="group" aria-label="Temperature unit">
+          <button data-unit-option="fahrenheit">°F</button>
+          <button data-unit-option="celsius">°C</button>
+        </div>
       </div>
     </header>
 

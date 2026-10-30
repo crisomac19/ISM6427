@@ -324,13 +324,19 @@ h2 {
 
 .greeting { font-size: 22px; font-weight: 600; }
 
-.theme-toggle {
+.controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.toggle {
   display: flex;
   padding: 4px;
   border-radius: 999px;
 }
 
-.theme-toggle button {
+.toggle button {
   border: none;
   background: none;
   color: var(--text);
@@ -342,7 +348,7 @@ h2 {
   opacity: 0.7;
 }
 
-.theme-toggle button.active {
+.toggle button.active {
   background: var(--accent);
   opacity: 1;
   font-weight: 600;
