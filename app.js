@@ -9,6 +9,7 @@ try { unit = localStorage.getItem("unit") || unit; } catch {}
 // WMO weather codes used by Open-Meteo
 const REFRESH_MS = 10 * 60 * 1000;
 let lastLoaded = 0;
+let cityTimeZone = null;
 
 const WEATHER = {
   0: ["Clear", "☀️"],
@@ -69,6 +70,8 @@ function render(name, data) {
 
   renderScene(current.weather_code, current.is_day === 1);
   $("city").textContent = name;
+  cityTimeZone = data.timezone;
+  updateClock();
   $("temp").textContent = `${Math.round(current.temperature_2m)}°`;
   $("desc").textContent = desc;
   $("hilo").textContent =
@@ -270,6 +273,23 @@ function refresh() {
 }
 
 // Keep the forecast current while the tab stays open or comes back into view
+// Shows the current time in the displayed city's time zone
+function updateClock() {
+  if (!cityTimeZone) return;
+  try {
+    $("localtime").textContent = new Date().toLocaleString("en-US", {
+      timeZone: cityTimeZone,
+      weekday: "long",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZoneName: "short",
+    });
+  } catch {
+    $("localtime").textContent = "";
+  }
+}
+
+setInterval(updateClock, 15 * 1000);
 setInterval(refresh, REFRESH_MS);
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && Date.now() - lastLoaded > REFRESH_MS / 2) refresh();

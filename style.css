@@ -132,6 +132,7 @@ h2 {
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45);
 }
 .current h1 { font-size: 30px; font-weight: 500; }
+.localtime { font-size: 14px; opacity: 0.85; min-height: 1.2em; }
 .temp { font-size: 96px; font-weight: 200; line-height: 1.1; }
 .desc { font-size: 20px; opacity: 0.9; }
 .hilo { margin-top: 6px; opacity: 0.8; }
