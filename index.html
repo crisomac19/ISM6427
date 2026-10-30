@@ -21,10 +21,6 @@
           <button data-theme-option="dark">Dark</button>
           <button data-theme-option="system">System</button>
         </div>
-        <div class="glass toggle" role="group" aria-label="Temperature unit">
-          <button data-unit-option="fahrenheit">°F</button>
-          <button data-unit-option="celsius">°C</button>
-        </div>
       </div>
     </header>
 
@@ -39,6 +35,10 @@
       <div id="temp" class="temp">--°</div>
       <div id="desc" class="desc">Loading…</div>
       <div id="hilo" class="hilo"></div>
+      <div class="toggle unit-toggle" role="group" aria-label="Temperature unit">
+        <button data-unit-option="fahrenheit">°F</button>
+        <button data-unit-option="celsius">°C</button>
+      </div>
     </section>
 
     <section class="glass details">

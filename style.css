@@ -125,7 +125,7 @@ h2 {
   overflow: hidden;
   isolation: isolate;
   text-align: center;
-  padding: 32px 20px;
+  padding: 32px 20px 52px;
   color: #fff;
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45);
 }
@@ -323,6 +323,23 @@ h2 {
 }
 
 .greeting { font-size: 22px; font-weight: 600; }
+
+/* °F/°C switch in the bottom-right corner of the current conditions card */
+.unit-toggle {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.toggle.unit-toggle button { color: #fff; padding: 4px 10px; }
+.toggle.unit-toggle button.active { background: rgba(255, 255, 255, 0.3); }
 
 .controls {
   display: flex;

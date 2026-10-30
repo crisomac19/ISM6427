@@ -6,6 +6,9 @@ let unit = "fahrenheit";
 try { unit = localStorage.getItem("unit") || unit; } catch {}
 
 // WMO weather codes used by Open-Meteo
+const REFRESH_MS = 10 * 60 * 1000;
+let lastLoaded = 0;
+
 const WEATHER = {
   0: ["Clear", "☀️"],
   1: ["Mostly Clear", "🌤️"],
@@ -31,6 +34,10 @@ const WEATHER = {
 };
 
 const weather = (code) => WEATHER[code] || ["Unknown", "🌡️"];
+
+// Show a moon instead of the sun for clear or partly cloudy nights
+const icon = (code, isDay) =>
+  isDay || code > 2 ? weather(code)[1] : code === 2 ? "☁️" : "🌙";
 const $ = (id) => document.getElementById(id);
 
 async function loadWeather(place) {
@@ -41,7 +48,7 @@ async function loadWeather(place) {
   const url =
     `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
     "&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day" +
-    "&hourly=temperature_2m,weather_code" +
+    "&hourly=temperature_2m,weather_code,is_day" +
     "&daily=weather_code,temperature_2m_max,temperature_2m_min" +
     `&temperature_unit=${unit}&wind_speed_unit=${windUnit}&timezone=auto&forecast_days=7`;
 
@@ -49,6 +56,7 @@ async function loadWeather(place) {
     const res = await fetch(url);
     if (!res.ok) throw new Error("Weather request failed");
     render(name, await res.json());
+    lastLoaded = Date.now();
   } catch (err) {
     showError("Couldn't load weather. Please try again.");
   }
@@ -68,17 +76,23 @@ function render(name, data) {
   $("humidity").textContent = `${current.relative_humidity_2m}%`;
   $("wind").textContent = `${Math.round(current.wind_speed_10m)} ${unit === "celsius" ? "km/h" : "mph"}`;
 
-  // Next 24 hours starting from the current hour
-  const start = hourly.time.findIndex((t) => t >= current.time.slice(0, 13));
+  // Next 24 hours starting from the current hour in the city's time zone
+  const nowHour = new Date(Date.now() + data.utc_offset_seconds * 1000).toISOString().slice(0, 13);
+  const start = Math.max(0, hourly.time.findIndex((t) => t.slice(0, 13) === nowHour));
   $("hourly").innerHTML = hourly.time
     .slice(start, start + 24)
     .map((t, i) => {
       const idx = start + i;
-      const hour = i === 0 ? "Now" : new Date(t).toLocaleTimeString([], { hour: "numeric" });
+      // "Now" uses the live reading so it matches the card above
+      const isNow = i === 0;
+      const code = isNow ? current.weather_code : hourly.weather_code[idx];
+      const isDay = (isNow ? current.is_day : hourly.is_day[idx]) === 1;
+      const temp = isNow ? current.temperature_2m : hourly.temperature_2m[idx];
+      const hour = isNow ? "Now" : new Date(t).toLocaleTimeString([], { hour: "numeric" });
       return `<div class="hour">
         <span>${hour}</span>
-        <span class="icon">${weather(hourly.weather_code[idx])[1]}</span>
-        <strong>${Math.round(hourly.temperature_2m[idx])}°</strong>
+        <span class="icon">${icon(code, isDay)}</span>
+        <strong>${Math.round(temp)}°</strong>
       </div>`;
     })
     .join("");
@@ -199,5 +213,16 @@ document.querySelectorAll("[data-unit-option]").forEach((btn) => {
 
 setTheme(document.documentElement.dataset.theme);
 setUnit(unit);
+function refresh() {
+  greet();
+  loadWeather(location_);
+}
+
+// Keep the forecast current while the tab stays open or comes back into view
+setInterval(refresh, REFRESH_MS);
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && Date.now() - lastLoaded > REFRESH_MS / 2) refresh();
+});
+
 greet();
 loadWeather(DEFAULT_LOCATION);
