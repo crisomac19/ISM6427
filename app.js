@@ -61,6 +61,7 @@ async function loadWeather(place) {
     if (!res.ok) throw new Error("Weather request failed");
     const data = await res.json();
     render(name, data);
+    updateMap(place);
     lastLoaded = Date.now();
     if (place.own) {
       // Sunrise times are in the location's local time; convert them to timestamps
@@ -251,8 +252,71 @@ function greet() {
   $("greeting").textContent = `${part}, ${USER_NAME}`;
 }
 
+// Map of the displayed city with an optional rain radar overlay
+const TILE_URL = "https://{s}.basemaps.cartocdn.com/{style}/{z}/{x}/{y}{r}.png";
+let map = null;
+let baseLayer = null;
+let marker = null;
+let radarLayer = null;
+
+function isDarkTheme() {
+  const theme = document.documentElement.dataset.theme;
+  return theme === "dark" || (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+}
+
+function updateMapTheme() {
+  if (baseLayer) baseLayer.setUrl(TILE_URL.replace("{style}", isDarkTheme() ? "dark_all" : "light_all"));
+}
+
+async function updateRadar() {
+  if (!map) return;
+  try {
+    const res = await fetch("https://api.rainviewer.com/public/weather-maps.json");
+    const data = await res.json();
+    const latest = data.radar.past[data.radar.past.length - 1];
+    const url = `${data.host}${latest.path}/256/{z}/{x}/{y}/2/1_1.png`;
+    if (radarLayer) return radarLayer.setUrl(url);
+    radarLayer = L.tileLayer(url, {
+      opacity: 0.6,
+      maxNativeZoom: 7,
+      attribution: '<a href="https://www.rainviewer.com/">RainViewer</a>',
+    }).addTo(map);
+    L.control.layers(null, { "Rain radar": radarLayer }).addTo(map);
+  } catch {
+    // The map still works without radar
+  }
+}
+
+function updateMap({ lat, lon }) {
+  if (typeof L === "undefined") return;
+  if (!map) {
+    map = L.map("map", { scrollWheelZoom: false }).setView([lat, lon], 9);
+    map.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>');
+    baseLayer = L.tileLayer(TILE_URL.replace("{style}", isDarkTheme() ? "dark_all" : "light_all"), {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: "abcd",
+      maxZoom: 19,
+    }).addTo(map);
+    marker = L.circleMarker([lat, lon], {
+      radius: 9,
+      color: "#fff",
+      weight: 3,
+      fillColor: "#2f80ed",
+      fillOpacity: 1,
+    }).addTo(map);
+    updateRadar();
+  } else {
+    marker.setLatLng([lat, lon]);
+    map.flyTo([lat, lon], 9, { duration: 1.2 });
+  }
+}
+
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", updateMapTheme);
+
 function setTheme(theme) {
   document.documentElement.dataset.theme = theme;
+  updateMapTheme();
   try { localStorage.setItem("theme", theme); } catch {}
   document.querySelectorAll("[data-theme-option]").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.themeOption === theme);
@@ -284,6 +348,7 @@ setUnit(unit);
 function refresh() {
   greet();
   loadWeather(location_);
+  updateRadar();
 }
 
 // Keep the forecast current while the tab stays open or comes back into view

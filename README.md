@@ -1,6 +1,6 @@
 # ISM6427
 
-Simple glassmorphic weather app built with the [Open-Meteo](https://open-meteo.com) API (no API key needed). Shows the weather where the visitor is (browser location, or an IP-based estimate if that's unavailable), falling back to Boca Raton, FL; search any city from the top bar.
+Simple glassmorphic weather app built with the [Open-Meteo](https://open-meteo.com) API (no API key needed). Shows the weather where the visitor is (browser location, or an IP-based estimate if that's unavailable), falling back to Boca Raton, FL; search any city from the top bar. A map (Leaflet with OpenStreetMap/CARTO tiles) shows the city with an optional RainViewer rain radar overlay.
 
 ## Deploy
 

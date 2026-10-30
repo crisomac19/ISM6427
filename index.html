@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Weather</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
   <link rel="stylesheet" href="style.css">
   <script>
     try { document.documentElement.dataset.theme = localStorage.getItem("theme") || "system"; } catch {}
@@ -49,6 +50,12 @@
       <div><span>Wind</span><strong id="wind">--</strong></div>
     </section>
 
+    <section class="map-card">
+      <div class="glass map-panel">
+        <div id="map" class="map"></div>
+      </div>
+    </section>
+
     <section class="glass">
       <h2>Hourly</h2>
       <div id="hourly" class="hourly"></div>
@@ -62,6 +69,7 @@
     <p id="error" class="error" hidden></p>
   </main>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -73,6 +73,64 @@ body {
   gap: 16px;
 }
 
+/* Map: a card on phones, a tall panel on the right on wider screens */
+.glass.map-panel { padding: 8px; }
+
+.map {
+  height: 260px;
+  border-radius: 18px;
+  isolation: isolate;
+}
+
+.leaflet-container { font: inherit; background: var(--glass); }
+
+/* Glass-style map controls that follow the theme */
+.leaflet-bar a,
+.leaflet-control-layers,
+.leaflet-control-attribution {
+  background: var(--glass) !important;
+  color: var(--text) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.leaflet-bar,
+.leaflet-control-layers { border: 1px solid var(--glass-border) !important; border-radius: 12px !important; }
+.leaflet-bar a { border-bottom-color: var(--glass-border) !important; }
+.leaflet-control-attribution { font-size: 10px; border-radius: 8px 0 0 0; }
+.leaflet-control-attribution a { color: inherit; }
+
+@media (min-width: 960px) {
+  .app {
+    max-width: 1200px;
+    display: grid;
+    grid-template-columns: 440px minmax(0, 1fr);
+    grid-template-rows: repeat(6, auto);
+    column-gap: 24px;
+    row-gap: 16px;
+    align-items: start;
+  }
+
+  .app > * { grid-column: 1; }
+
+  /* Spans the six left-hand rows; contain keeps it from stretching them */
+  .map-card {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    align-self: stretch;
+    contain: size;
+  }
+
+  .map-panel {
+    position: sticky;
+    top: 24px;
+    height: calc(100vh - 48px);
+    max-height: 100%;
+  }
+
+  .map { height: 100%; }
+}
+
 .glass {
   background: var(--glass);
   border: 1px solid var(--glass-border);
