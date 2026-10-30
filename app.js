@@ -253,20 +253,9 @@ function greet() {
 }
 
 // Map of the displayed city with an optional rain radar overlay
-const TILE_URL = "https://{s}.basemaps.cartocdn.com/{style}/{z}/{x}/{y}{r}.png";
 let map = null;
-let baseLayer = null;
 let marker = null;
 let radarLayer = null;
-
-function isDarkTheme() {
-  const theme = document.documentElement.dataset.theme;
-  return theme === "dark" || (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
-}
-
-function updateMapTheme() {
-  if (baseLayer) baseLayer.setUrl(TILE_URL.replace("{style}", isDarkTheme() ? "dark_all" : "light_all"));
-}
 
 async function updateRadar() {
   if (!map) return;
@@ -292,10 +281,10 @@ function updateMap({ lat, lon }) {
   if (!map) {
     map = L.map("map", { scrollWheelZoom: false }).setView([lat, lon], 9);
     map.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>');
-    baseLayer = L.tileLayer(TILE_URL.replace("{style}", isDarkTheme() ? "dark_all" : "light_all"), {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: "abcd",
+    // OpenStreetMap tiles need no API key; dark mode darkens them with a CSS filter
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+      className: "base-tiles",
       maxZoom: 19,
     }).addTo(map);
     marker = L.circleMarker([lat, lon], {
@@ -312,11 +301,8 @@ function updateMap({ lat, lon }) {
   }
 }
 
-matchMedia("(prefers-color-scheme: dark)").addEventListener("change", updateMapTheme);
-
 function setTheme(theme) {
   document.documentElement.dataset.theme = theme;
-  updateMapTheme();
   try { localStorage.setItem("theme", theme); } catch {}
   document.querySelectorAll("[data-theme-option]").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.themeOption === theme);

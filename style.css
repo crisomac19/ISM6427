@@ -84,6 +84,17 @@ body {
 
 .leaflet-container { font: inherit; background: var(--glass); }
 
+/* Dark map tiles in dark mode (the radar layer is left untouched) */
+:root[data-theme="dark"] .base-tiles {
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="system"] .base-tiles {
+    filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
+  }
+}
+
 /* Glass-style map controls that follow the theme */
 .leaflet-bar a,
 .leaflet-control-layers,
