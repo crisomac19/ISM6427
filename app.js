@@ -1,6 +1,7 @@
 const USER_NAME = "Cristian";
 // Used when the visitor's location isn't available
-const DEFAULT_LOCATION = { name: "Boca Raton", lat: 26.3683, lon: -80.1289 };
+// "own" marks the visitor's own location, used for the sunrise-based greeting
+const DEFAULT_LOCATION = { name: "Boca Raton", lat: 26.3683, lon: -80.1289, own: true };
 
 let location_ = DEFAULT_LOCATION;
 let unit = "fahrenheit";
@@ -10,6 +11,7 @@ try { unit = localStorage.getItem("unit") || unit; } catch {}
 const REFRESH_MS = 10 * 60 * 1000;
 let lastLoaded = 0;
 let cityTimeZone = null;
+let visitorSunrises = []; // sunrise times (ms) at the visitor's location
 
 const WEATHER = {
   0: ["Clear", "☀️"],
@@ -51,14 +53,20 @@ async function loadWeather(place) {
     `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
     "&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day" +
     "&hourly=temperature_2m,weather_code,is_day" +
-    "&daily=weather_code,temperature_2m_max,temperature_2m_min" +
+    "&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise" +
     `&temperature_unit=${unit}&wind_speed_unit=${windUnit}&timezone=auto&forecast_days=7`;
 
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error("Weather request failed");
-    render(name, await res.json());
+    const data = await res.json();
+    render(name, data);
     lastLoaded = Date.now();
+    if (place.own) {
+      // Sunrise times are in the location's local time; convert them to timestamps
+      visitorSunrises = data.daily.sunrise.map((t) => Date.parse(t + "Z") - data.utc_offset_seconds * 1000);
+      greet();
+    }
   } catch (err) {
     showError("Couldn't load weather. Please try again.");
   }
@@ -177,7 +185,7 @@ async function locateFromIp() {
     const data = await res.json();
     if (typeof data.latitude !== "number") throw new Error("No IP location");
     const name = data.city || data.locality || data.principalSubdivision || "My Location";
-    loadWeather({ name, lat: data.latitude, lon: data.longitude });
+    loadWeather({ name, lat: data.latitude, lon: data.longitude, own: true });
   } catch {
     loadWeather(DEFAULT_LOCATION);
   }
@@ -192,7 +200,7 @@ function locateUser() {
     async ({ coords }) => {
       const lat = coords.latitude;
       const lon = coords.longitude;
-      loadWeather({ name: await placeName(lat, lon), lat, lon });
+      loadWeather({ name: await placeName(lat, lon), lat, lon, own: true });
     },
     (err) => {
       console.warn("Browser location unavailable:", err.message);
@@ -232,8 +240,14 @@ $("locate").addEventListener("click", () => {
 });
 
 function greet() {
-  const hour = new Date().getHours();
-  const part = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const now = new Date();
+  const hour = now.getHours();
+  // Today's sunrise where the visitor is, or 6 AM until it's known
+  const sunrise =
+    visitorSunrises.find((ms) => new Date(ms).toDateString() === now.toDateString()) ??
+    new Date(now).setHours(6, 0, 0, 0);
+  const part =
+    now < sunrise ? "Good night" : hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   $("greeting").textContent = `${part}, ${USER_NAME}`;
 }
 
@@ -289,7 +303,10 @@ function updateClock() {
   }
 }
 
-setInterval(updateClock, 15 * 1000);
+setInterval(() => {
+  updateClock();
+  greet();
+}, 15 * 1000);
 setInterval(refresh, REFRESH_MS);
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden && Date.now() - lastLoaded > REFRESH_MS / 2) refresh();
