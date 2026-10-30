@@ -167,17 +167,34 @@ async function placeName(lat, lon) {
   }
 }
 
-// Loads weather for the visitor's location, or Boca Raton if it isn't available
+// Approximate location from the visitor's IP address (no permission needed)
+async function locateFromIp() {
+  try {
+    const res = await fetch("https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=en");
+    const data = await res.json();
+    if (typeof data.latitude !== "number") throw new Error("No IP location");
+    const name = data.city || data.locality || data.principalSubdivision || "My Location";
+    loadWeather({ name, lat: data.latitude, lon: data.longitude });
+  } catch {
+    loadWeather(DEFAULT_LOCATION);
+  }
+}
+
+// Loads weather for the visitor's location: precise browser location first,
+// then IP-based location, then Boca Raton
 function locateUser() {
-  if (!navigator.geolocation) return loadWeather(DEFAULT_LOCATION);
   $("city").textContent = "Locating…";
+  if (!navigator.geolocation) return locateFromIp();
   navigator.geolocation.getCurrentPosition(
     async ({ coords }) => {
       const lat = coords.latitude;
       const lon = coords.longitude;
       loadWeather({ name: await placeName(lat, lon), lat, lon });
     },
-    () => loadWeather(DEFAULT_LOCATION),
+    (err) => {
+      console.warn("Browser location unavailable:", err.message);
+      locateFromIp();
+    },
     { timeout: 10000, maximumAge: 10 * 60 * 1000 }
   );
 }
